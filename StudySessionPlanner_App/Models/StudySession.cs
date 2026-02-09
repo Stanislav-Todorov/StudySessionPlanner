@@ -13,12 +13,15 @@ namespace StudySessionPlanner_App.Models
         public string Location { get; set; } = null!;
 
         [Required]
+        [Display(Name = "Start Time")]
         public DateTime StartTime { get; set; }
 
         [Range(15, 360)]
+        [Display(Name = "Duration (minutes)")]
         public int DurationMinutes { get; set; }
 
         [Required]
+        [Display(Name = "Topic")]
         public int TopicId { get; set; }
 
         public Topic Topic { get; set; } = null!;
