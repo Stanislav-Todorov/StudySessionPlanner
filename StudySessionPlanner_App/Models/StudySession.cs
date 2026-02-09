@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using System.ComponentModel.DataAnnotations;
 namespace StudySessionPlanner_App.Models
 {
     public class StudySession
@@ -24,6 +25,7 @@ namespace StudySessionPlanner_App.Models
         [Display(Name = "Topic")]
         public int TopicId { get; set; }
 
+        [ValidateNever]
         public Topic Topic { get; set; } = null!;
 
         public ICollection<Participant> Participants { get; set; } = new List<Participant>();
