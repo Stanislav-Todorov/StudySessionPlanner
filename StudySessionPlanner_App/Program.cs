@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StudySessionPlanner_App.Data;
+using StudySessionPlanner_App.Models;
 
 namespace StudySessionPlanner_App
 {
@@ -45,6 +46,23 @@ namespace StudySessionPlanner_App
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
+
+            using (var scope = app.Services.CreateScope())
+            {
+                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                db.Database.Migrate();
+
+                if (!db.Topics.Any())
+                {
+                    db.Topics.AddRange(
+                        new Topic { Name = "Databases" },
+                        new Topic { Name = "C# Fundamentals" },
+                        new Topic { Name = "ASP.NET Core MVC" }
+                    );
+                    db.SaveChanges();
+                }
+            }
+
 
             app.Run();
         }
