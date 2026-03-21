@@ -29,5 +29,7 @@ namespace StudySessionPlanner_App.Models
         public Topic Topic { get; set; } = null!;
 
         public ICollection<Participant> Participants { get; set; } = new List<Participant>();
+        public ICollection<Enrollment> Enrollments { get; set; } = new List<Enrollment>();
+        public ICollection<Feedback> Feedbacks { get; set; } = new List<Feedback>();
     }
 }
