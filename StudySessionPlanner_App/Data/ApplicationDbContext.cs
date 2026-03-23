@@ -16,5 +16,6 @@ namespace StudySessionPlanner_App.Data
         public DbSet<Participant> Participants { get; set; } = null!;
         public DbSet<Enrollment> Enrollments { get; set; } = null!;
         public DbSet<Feedback> Feedbacks { get; set; } = null!;
+        public DbSet<Resource> Resources { get; set; } = null!;
     }
 }
