@@ -18,6 +18,7 @@ namespace StudySessionPlanner_App
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
             builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
 
@@ -49,8 +50,22 @@ namespace StudySessionPlanner_App
 
             using (var scope = app.Services.CreateScope())
             {
+                var services = scope.ServiceProvider;
+
                 var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
                 db.Database.Migrate();
+
+                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+
+                string[] roles = { "Administrator", "User" };
+
+                foreach (var role in roles)
+                {
+                    if (roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+                    {
+                        roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
+                    }
+                }
 
                 if (!db.Topics.Any())
                 {
@@ -59,7 +74,7 @@ namespace StudySessionPlanner_App
                         new Topic { Name = "C# Fundamentals" },
                         new Topic { Name = "ASP.NET Core MVC" }
                     );
-                    db.SaveChanges();
+                    db.SaveChangesAsync();
                 }
             }
 
