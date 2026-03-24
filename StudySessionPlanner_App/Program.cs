@@ -56,6 +56,8 @@ namespace StudySessionPlanner_App
                 db.Database.Migrate();
 
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+
 
                 string[] roles = { "Administrator", "User" };
 
@@ -66,6 +68,30 @@ namespace StudySessionPlanner_App
                         roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
                     }
                 }
+
+                
+                string adminEmail = "admin@studysessionplanner.com";
+                string adminPassword = "Admin123!";
+
+                var adminUser = userManager.FindByEmailAsync(adminEmail).GetAwaiter().GetResult();
+
+                if (adminUser == null)
+                {
+                    adminUser = new ApplicationUser
+                    {
+                        UserName = adminEmail,
+                        Email = adminEmail,
+                        EmailConfirmed = true
+                    };
+
+                    var result = userManager.CreateAsync(adminUser, adminPassword).GetAwaiter().GetResult();
+
+                    if (result.Succeeded)
+                    {
+                        userManager.AddToRoleAsync(adminUser, "Administrator").GetAwaiter().GetResult();
+                    }
+                }
+
 
                 if (!db.Topics.Any())
                 {
