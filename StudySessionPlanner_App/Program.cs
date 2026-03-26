@@ -44,6 +44,10 @@ namespace StudySessionPlanner_App
             app.UseAuthorization();
 
             app.MapControllerRoute(
+                name: "areas",
+                pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+
+            app.MapControllerRoute(
                 name: "default",
                 pattern: "{controller=Home}/{action=Index}/{id?}");
             app.MapRazorPages();
@@ -52,24 +56,29 @@ namespace StudySessionPlanner_App
             {
                 var services = scope.ServiceProvider;
 
-                var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+                var db = services.GetRequiredService<ApplicationDbContext>();
                 db.Database.Migrate();
 
                 var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
                 var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
 
-
                 string[] roles = { "Administrator", "User" };
 
                 foreach (var role in roles)
                 {
-                    if (roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+                    var roleExists = roleManager.RoleExistsAsync(role).GetAwaiter().GetResult();
+
+                    if (!roleExists)
                     {
-                        roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
+                        var roleResult = roleManager.CreateAsync(new IdentityRole(role)).GetAwaiter().GetResult();
+
+                        if (!roleResult.Succeeded)
+                        {
+                            throw new Exception("Failed to create role: " + role);
+                        }
                     }
                 }
 
-                
                 string adminEmail = "admin@studysessionplanner.com";
                 string adminPassword = "Admin123!";
 
@@ -84,14 +93,25 @@ namespace StudySessionPlanner_App
                         EmailConfirmed = true
                     };
 
-                    var result = userManager.CreateAsync(adminUser, adminPassword).GetAwaiter().GetResult();
+                    var createUserResult = userManager.CreateAsync(adminUser, adminPassword).GetAwaiter().GetResult();
 
-                    if (result.Succeeded)
+                    if (!createUserResult.Succeeded)
                     {
-                        userManager.AddToRoleAsync(adminUser, "Administrator").GetAwaiter().GetResult();
+                        throw new Exception("Failed to create admin user.");
                     }
                 }
 
+                var isAdmin = userManager.IsInRoleAsync(adminUser, "Administrator").GetAwaiter().GetResult();
+
+                if (!isAdmin)
+                {
+                    var addToRoleResult = userManager.AddToRoleAsync(adminUser, "Administrator").GetAwaiter().GetResult();
+
+                    if (!addToRoleResult.Succeeded)
+                    {
+                        throw new Exception("Failed to assign Administrator role to admin user.");
+                    }
+                }
 
                 if (!db.Topics.Any())
                 {
@@ -100,7 +120,8 @@ namespace StudySessionPlanner_App
                         new Topic { Name = "C# Fundamentals" },
                         new Topic { Name = "ASP.NET Core MVC" }
                     );
-                    db.SaveChangesAsync();
+
+                    db.SaveChanges();
                 }
             }
 
