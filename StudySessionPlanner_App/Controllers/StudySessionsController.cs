@@ -7,16 +7,21 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudySessionPlanner_App.Data;
 using StudySessionPlanner_App.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 
 namespace StudySessionPlanner_App.Controllers
 {
     public class StudySessionsController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly UserManager<ApplicationUser> _userManager;
 
-        public StudySessionsController(ApplicationDbContext context)
+
+        public StudySessionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
         {
             _context = context;
+            _userManager = userManager;
         }
 
         // GET: StudySessions
@@ -36,6 +41,7 @@ namespace StudySessionPlanner_App.Controllers
 
             var studySession = await _context.StudySessions
                 .Include(s => s.Topic)
+                .Include(s => s.Enrollments)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (studySession == null)
             {
@@ -154,6 +160,44 @@ namespace StudySessionPlanner_App.Controllers
 
             await _context.SaveChangesAsync();
             return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Enroll(int id)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            var studySessionExists = await _context.StudySessions.AnyAsync(s => s.Id == id);
+
+            if (!studySessionExists)
+            {
+                return NotFound();
+            }
+
+            bool alreadyEnrolled = await _context.Enrollments
+                .AnyAsync(e => e.StudySessionId == id && e.UserId == user.Id);
+
+            if (!alreadyEnrolled)
+            {
+                var enrollment = new Enrollment
+                {
+                    StudySessionId = id,
+                    UserId = user.Id,
+                    JoinedOn = DateTime.UtcNow
+                };
+
+                _context.Enrollments.Add(enrollment);
+                await _context.SaveChangesAsync();
+            }
+
+            return RedirectToAction(nameof(Details), new { id });
         }
 
         private bool StudySessionExists(int id)

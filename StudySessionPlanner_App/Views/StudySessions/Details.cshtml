@@ -42,7 +42,31 @@
         </dd>
     </dl>
 </div>
+
 <div>
     <a asp-action="Edit" asp-route-id="@Model?.Id">Edit</a> |
     <a asp-action="Index">Back to List</a>
 </div>
+@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var isEnrolled = Model.Enrollments.Any(e => e.UserId == currentUserId);
+
+    if (isEnrolled)
+    {
+        <p class="text-success">You are already enrolled in this study session.</p>
+    }
+    else
+    {
+        <form asp-action="Enroll" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+            <button type="submit" class="btn btn-primary">Enroll</button>
+        </form>
+    }
+}
+else
+{
+    <p>Please log in to enroll in this study session.</p>
+}
+
+<p><strong>Enrolled users:</strong> @Model.Enrollments.Count</p>
