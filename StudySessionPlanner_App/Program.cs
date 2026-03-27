@@ -2,6 +2,8 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using StudySessionPlanner_App.Data;
 using StudySessionPlanner_App.Models;
+using StudySessionPlanner_App.Services;
+using StudySessionPlanner_App.Services.Contracts;
 
 namespace StudySessionPlanner_App
 {
@@ -21,6 +23,8 @@ namespace StudySessionPlanner_App
                 .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<ApplicationDbContext>();
             builder.Services.AddControllersWithViews();
+
+            builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 
             var app = builder.Build();
 

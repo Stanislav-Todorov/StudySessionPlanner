@@ -1,14 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using StudySessionPlanner_App.Data;
 using StudySessionPlanner_App.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using StudySessionPlanner_App.Services.Contracts;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace StudySessionPlanner_App.Controllers
 {
@@ -16,12 +17,14 @@ namespace StudySessionPlanner_App.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IEnrollmentService _enrollmentService;
 
 
-        public StudySessionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public StudySessionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEnrollmentService enrollmentService)
         {
             _context = context;
             _userManager = userManager;
+            _enrollmentService = enrollmentService;
         }
 
         // GET: StudySessions
@@ -174,28 +177,7 @@ namespace StudySessionPlanner_App.Controllers
                 return Challenge();
             }
 
-            var studySessionExists = await _context.StudySessions.AnyAsync(s => s.Id == id);
-
-            if (!studySessionExists)
-            {
-                return NotFound();
-            }
-
-            bool alreadyEnrolled = await _context.Enrollments
-                .AnyAsync(e => e.StudySessionId == id && e.UserId == user.Id);
-
-            if (!alreadyEnrolled)
-            {
-                var enrollment = new Enrollment
-                {
-                    StudySessionId = id,
-                    UserId = user.Id,
-                    JoinedOn = DateTime.UtcNow
-                };
-
-                _context.Enrollments.Add(enrollment);
-                await _context.SaveChangesAsync();
-            }
+            await _enrollmentService.EnrollUserAsync(id, user.Id);
 
             return RedirectToAction(nameof(Details), new { id });
         }
