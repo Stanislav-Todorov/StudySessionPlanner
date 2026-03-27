@@ -26,6 +26,8 @@ namespace StudySessionPlanner_App
 
             builder.Services.AddScoped<IEnrollmentService, EnrollmentService>();
 
+            builder.Services.AddScoped<IFeedbackService, FeedbackService>();
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
