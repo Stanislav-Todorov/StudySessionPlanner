@@ -18,13 +18,15 @@ namespace StudySessionPlanner_App.Controllers
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEnrollmentService _enrollmentService;
+        private readonly IFeedbackService _feedbackService;
 
 
-        public StudySessionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEnrollmentService enrollmentService)
+        public StudySessionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEnrollmentService enrollmentService, IFeedbackService feedbackService)
         {
             _context = context;
             _userManager = userManager;
             _enrollmentService = enrollmentService;
+            _feedbackService = feedbackService;
         }
 
         // GET: StudySessions
@@ -45,6 +47,8 @@ namespace StudySessionPlanner_App.Controllers
             var studySession = await _context.StudySessions
                 .Include(s => s.Topic)
                 .Include(s => s.Enrollments)
+                .Include(s => s.Feedbacks)
+                .ThenInclude(f => f.User)
                 .FirstOrDefaultAsync(m => m.Id == id);
             if (studySession == null)
             {
@@ -178,6 +182,23 @@ namespace StudySessionPlanner_App.Controllers
             }
 
             await _enrollmentService.EnrollUserAsync(id, user.Id);
+
+            return RedirectToAction(nameof(Details), new { id });
+        }
+
+        [HttpPost]
+        [Authorize]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> LeaveFeedback(int id, string comment, int rating)
+        {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user == null)
+            {
+                return Challenge();
+            }
+
+            await _feedbackService.AddFeedbackAsync(id, user.Id, comment, rating);
 
             return RedirectToAction(nameof(Details), new { id });
         }
