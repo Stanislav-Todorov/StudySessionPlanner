@@ -70,3 +70,59 @@ else
 }
 
 <p><strong>Enrolled users:</strong> @Model.Enrollments.Count</p>
+<hr />
+
+<h3>Feedback</h3>
+
+@if (User.Identity != null && User.Identity.IsAuthenticated)
+{
+    var currentUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+    var hasLeftFeedback = Model.Feedbacks.Any(f => f.UserId == currentUserId);
+
+    if (!hasLeftFeedback)
+    {
+        <form asp-action="LeaveFeedback" method="post">
+            <input type="hidden" name="id" value="@Model.Id" />
+
+            <div class="form-group mb-2">
+                <label for="comment">Comment</label>
+                <textarea name="comment" class="form-control" rows="3" required></textarea>
+            </div>
+
+            <div class="form-group mb-2">
+                <label for="rating">Rating</label>
+                <select name="rating" class="form-control">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary">Submit Feedback</button>
+        </form>
+    }
+    else
+    {
+        <p class="text-success">You have already left feedback for this session.</p>
+    }
+}
+
+@if (Model.Feedbacks.Any())
+{
+    <ul class="list-group mt-3">
+        @foreach (var feedback in Model.Feedbacks)
+        {
+            <li class="list-group-item">
+                <strong>@feedback.User.UserName</strong> - Rating: @feedback.Rating/5
+                <br />
+                @feedback.Comment
+            </li>
+        }
+    </ul>
+}
+else
+{
+    <p class="mt-3">No feedback has been submitted yet.</p>
+}
