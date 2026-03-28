@@ -19,21 +19,34 @@ namespace StudySessionPlanner_App.Controllers
         private readonly UserManager<ApplicationUser> _userManager;
         private readonly IEnrollmentService _enrollmentService;
         private readonly IFeedbackService _feedbackService;
+        private readonly IStudySessionService _studySessionService;
 
 
-        public StudySessionsController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IEnrollmentService enrollmentService, IFeedbackService feedbackService)
+        public StudySessionsController(
+            ApplicationDbContext context,
+            UserManager<ApplicationUser> userManager,
+            IEnrollmentService enrollmentService,
+            IFeedbackService feedbackService,
+            IStudySessionService studySessionService)
         {
             _context = context;
             _userManager = userManager;
             _enrollmentService = enrollmentService;
             _feedbackService = feedbackService;
+            _studySessionService = studySessionService;
         }
 
         // GET: StudySessions
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchTerm, int? topicId)
         {
-            var applicationDbContext = _context.StudySessions.Include(s => s.Topic);
-            return View(await applicationDbContext.ToListAsync());
+            var sessions = await _studySessionService.GetFilteredSessionsAsync(searchTerm, topicId);
+            var topics = await _studySessionService.GetAllTopicsAsync();
+
+            ViewBag.Topics = topics;
+            ViewBag.SearchTerm = searchTerm;
+            ViewBag.TopicId = topicId;
+
+            return View(sessions);
         }
 
         // GET: StudySessions/Details/5
