@@ -4,6 +4,44 @@
     ViewData["Title"] = "Index";
 }
 
+@using Microsoft.AspNetCore.Mvc.Rendering
+@{
+    var topics = ViewBag.Topics as IEnumerable<StudySessionPlanner_App.Models.Topic>;
+}
+
+<form method="get" asp-action="Index" class="mb-3">
+    <div class="row">
+        <div class="col-md-4">
+            <input type="text" name="searchTerm" value="@ViewBag.SearchTerm" class="form-control" placeholder="Search by title..." />
+        </div>
+
+        <div class="col-md-4">
+            <select name="topicId" class="form-control">
+                <option value="">All Topics</option>
+                @if (topics != null)
+                {
+                    foreach (var topic in topics)
+                    {
+                        if (ViewBag.TopicId != null && ViewBag.TopicId.ToString() == topic.Id.ToString())
+                        {
+                            <option value="@topic.Id" selected>@topic.Name</option>
+                        }
+                        else
+                        {
+                            <option value="@topic.Id">@topic.Name</option>
+                        }
+                    }
+                }
+            </select>
+        </div>
+
+        <div class="col-md-4">
+            <button type="submit" class="btn btn-primary">Search</button>
+            <a asp-action="Index" class="btn btn-secondary">Clear</a>
+        </div>
+    </div>
+</form>
+
 <h1>Index</h1>
 
 <p>
