@@ -33,16 +33,17 @@ namespace StudySessionPlanner_App
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
-            if (app.Environment.IsDevelopment())
+            if (!app.Environment.IsDevelopment())
             {
-                app.UseMigrationsEndPoint();
+                app.UseExceptionHandler("/Home/Error500");
+                app.UseHsts();
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-                app.UseHsts();
+                app.UseDeveloperExceptionPage();
             }
+
+            app.UseStatusCodePagesWithReExecute("/Home/Error404");
 
             app.UseHttpsRedirection();
             app.UseStaticFiles();

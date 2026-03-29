@@ -28,5 +28,15 @@ namespace StudySessionPlanner_App.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
+
+        public IActionResult Error404()
+        {
+            return View();
+        }
+
+        public IActionResult Error500()
+        {
+            return View();
+        }
     }
 }
