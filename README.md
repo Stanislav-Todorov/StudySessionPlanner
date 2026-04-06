@@ -70,6 +70,14 @@ Entities:
 * Email: admin@studysessionplanner.com
 * Password: Admin123!
 
+## Unit Tests
+* Unit tests are implemented using xUnit.
+* The service layer is covered with tests, including:
+  - EnrollmentService
+  - FeedbackService
+  - StudySessionService
+* An in-memory database (EF Core InMemory) is used for testing.
+
 ## Design Decisions
 
 * **Identifiers**
